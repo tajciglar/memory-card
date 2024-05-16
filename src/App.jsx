@@ -3,6 +3,7 @@ import Cards from './components/Cards'
 import './App.css'
 import StartScreen from './components/StartScreen'
 import { useState } from 'react'
+import ScoreBoard from './ScoreBoard';
 
 function App() {
 
@@ -17,11 +18,11 @@ function App() {
         {!gameStarted ? (
           <StartScreen startGame={startGame}></StartScreen>
         ) : (
-          <Cards></Cards>)
+          <Cards>
+            <ScoreBoard></ScoreBoard>
+          </Cards>)
   
         }
-        
-        
       </>
     )
 }
