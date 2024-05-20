@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react';
 import '../styles/cards.css';  
+import ScoreBoard from './ScoreBoard';
 
 export default function Cards() {
     const [cardImages, setCardImages] = useState([]);
-    const [gameLevel, setGameLevel] = useState(0);
     const [clickedCards, setClickedCards] = useState([]);
-    
+    const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [originalOrder, setOriginalOrder] = useState([]);
+    const [cardNumber, setCardNumber] = useState(8);
 
-    const changeLevels = () => {
-        setGameLevel(gameLevel + 1);
+    const resetGame = () => {
+        setScore(0);
+        setClickedCards([]);
+        setCardNumber(8); 
+        setCardImages(originalOrder); // Reset card images to their original order
+    };
+
+    const changeLevel = (number) => {
+        setCardNumber(number);
+        
     }
     
     useEffect(() => {
@@ -19,24 +30,42 @@ export default function Cards() {
                 const images = data.data
                 .filter(card => card.type === "Effect Monster")
                 .map(card => card.card_images[0].image_url_small)
-                .slice(0, 8);
+                .slice(0, cardNumber);
                 setCardImages(images);
+                setOriginalOrder(images); // Store the original order of card images
             } catch (error) {
                 console.log('Error: ', error);
             } 
         }
         getCardImages();
-    }, []);
+    }, [cardNumber]);
 
+    const updateScore = () => {
+        setScore(prevScore => prevScore + 1); // Update score based on previous score
+    
+        // Update game level based on current score
+        if(score + 1 === cardNumber) {
+            changeLevel(cardNumber + 4);
+            shuffleCards();
+        } 
+     
+        // Update high score if the current score is higher
+        setHighScore(prevHighScore => {
+            if (prevHighScore < score + 1) {
+                return score + 1;
+            }
+            return prevHighScore;
+        });
+    };
+    
 
     const checkClickedCard = (event) => {
         if (clickedCards.includes(event.target.alt)) {
-            alert("end game");
+            resetGame(); // Reset the game if the user loses
         } else {
+            updateScore();
             shuffleCards();
-            
             setClickedCards([...clickedCards, event.target.alt]);
-            console.log(clickedCards)
         }
     }
 
@@ -51,12 +80,15 @@ export default function Cards() {
     };
 
     return (
-        <div className='cards'>
-            {cardImages.map((imageUrl, index) => (
-                <div key={index} onClick={checkClickedCard}>
-                   <img src={imageUrl} alt={`Effect Monster ${index}`} />
-                </div>
-            ))}
-        </div>
+        <>
+            <ScoreBoard score={score} highScore={highScore}></ScoreBoard>
+            <div className='cards'>
+                {cardImages.map((imageUrl, index) => (
+                    <div key={index} onClick={checkClickedCard}>
+                        <img src={imageUrl} alt={`Effect Monster ${index}`} />
+                    </div>
+                ))}
+            </div>
+        </>
     );
 }
